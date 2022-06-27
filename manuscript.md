@@ -35,11 +35,11 @@
 
 #### ⭐️1-1. 表示するView要素に関する処理が実行される想定かを確認する
 
-![resume_capture_01.png](https://github.com/fumiyasac/iosdc2021_pamphlet_manuscript/blob/main/images/resume_capture_01.png)
+![resume_capture_01.png](https://github.com/fumiyasac/iosdc2022_pamphlet_manuscript/blob/main/images/resume_capture_01.png)
 
 #### ⭐️1-2. 表示するView要素に関する処理が実行される想定かを確認する
 
-![resume_capture_02.png](https://github.com/fumiyasac/iosdc2021_pamphlet_manuscript/blob/main/images/resume_capture_02.png)
+![resume_capture_02.png](https://github.com/fumiyasac/iosdc2022_pamphlet_manuscript/blob/main/images/resume_capture_02.png)
 
 ```shell
 # 1. SwiftyMocky CLIを準備する
@@ -54,7 +54,7 @@ $ mint install MakeAWishFoundation/SwiftyMocky
 
 ### 2. 仕様で本当に抜け漏れがないかを確認する場合
 
-![resume_capture_03.png](https://github.com/fumiyasac/iosdc2021_pamphlet_manuscript/blob/main/images/resume_capture_03.png)
+![resume_capture_03.png](https://github.com/fumiyasac/iosdc2022_pamphlet_manuscript/blob/main/images/resume_capture_03.png)
 
 **【処理実行部分のコード抜粋】**
 
@@ -70,7 +70,7 @@ $ mint install MakeAWishFoundation/SwiftyMocky
 
 ### 3. 言葉ではシンプルだが実際に正しいか否か見えにくい場合
 
-![resume_capture_04.png](https://github.com/fumiyasac/iosdc2021_pamphlet_manuscript/blob/main/images/resume_capture_04.png)
+![resume_capture_04.png](https://github.com/fumiyasac/iosdc2022_pamphlet_manuscript/blob/main/images/resume_capture_04.png)
 
 **【処理実行部分のコード抜粋】**
 
@@ -164,7 +164,7 @@ describe("#getSpecialContentBanners") {
 
 ### 4. 実は細かな点に気を配ってみると疑問が生まれる場合
 
-![resume_capture_05.png](https://github.com/fumiyasac/iosdc2021_pamphlet_manuscript/blob/main/images/resume_capture_05.png)
+![resume_capture_05.png](https://github.com/fumiyasac/iosdc2022_pamphlet_manuscript/blob/main/images/resume_capture_05.png)
 
 **【処理実行部分のコード抜粋】**
 
@@ -340,4 +340,4 @@ describe("#getRelatedOrRecommendedAllShops") {
 
 業務内でもユニットテストによる仕様担保があったお陰で、業務キャッチアップの為のソースコードリーディングを通じた仕様理解がとても素早く行う事ができたり、他にも既存機能を改修する際における既存仕様の把握や実装経緯を知る必要な場面でも有意義だった経験は振り返ると多々ありました。そして、この様な体験を通して、本当に小さくかつ細かな部分に対する理解とケアの積み重ねが大きな恩恵を受けるための礎となることを改めて痛感した次第です。最後までお読み頂きまして本当にありがとうございました。
 
-![resume_capture_06.png](https://github.com/fumiyasac/iosdc2021_pamphlet_manuscript/blob/main/images/resume_capture_06.png)
+![resume_capture_06.png](https://github.com/fumiyasac/iosdc2022_pamphlet_manuscript/blob/main/images/resume_capture_06.png)
