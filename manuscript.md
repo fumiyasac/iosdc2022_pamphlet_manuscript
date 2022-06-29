@@ -8,6 +8,8 @@
 
 ### はじめに
 
+### はじめに
+
 アプリ開発の過程で、仕様のミスリード・不十分な仕様把握・説明の解釈ミス等で本来の意図と実際の成果物で齟齬が生まれてしまう事は、決して特別な事ではなく常に起こり得る可能性があります。
 
 開発者がアプリが持っている機能を全て把握できているのであれば、そのような懸案は比較的少ないかもしれません。しかしながら、アプリの開発規模が大きい場合や、機能を実現する過程の中で複雑なロジックを実装する必要がある場合においては、その機能や実装を全て把握するのは困難になることが多いと思います。
@@ -41,42 +43,35 @@
 
 ![resume_capture_02.png](https://github.com/fumiyasac/iosdc2022_pamphlet_manuscript/blob/main/images/resume_capture_02.png)
 
+__【実行コマンドのおおまかな手順】__
+
 ```shell
 # 1. SwiftyMocky CLIを準備する
 $ brew install mint
 $ mint install MakeAWishFoundation/SwiftyMocky
-# 2. SwiftyMocky CLIを準備する
+
+# 2. インストールができた事を確認する 👉 前述した図解の様な形でUsage:やCommands:が表示される事を確認
+$ swiftymocky
+
+# 3. Mock自動生成処理を実行する 👉 Mock.generated.swiftに生成したMockが追記されていく形
+$ swiftymocky generate
 ```
 
-```swift
-
-```
-
-### 2. 仕様で本当に抜け漏れがないかを確認する場合
+#### ⭐️1-3. 仕様で本当に抜け漏れがないかを確認する
 
 ![resume_capture_03.png](https://github.com/fumiyasac/iosdc2022_pamphlet_manuscript/blob/main/images/resume_capture_03.png)
 
-**【処理実行部分のコード抜粋】**
-
-```swift
-// Comment. 
-```
-
-**【ユニットテスト時に重要な部分のコード抜粋】**
-
-```swift
-// Comment. 
-```
-
-### 3. 言葉ではシンプルだが実際に正しいか否か見えにくい場合
+### 2. 言葉ではシンプルだが実際に正しいか否か見えにくい場合
 
 ![resume_capture_04.png](https://github.com/fumiyasac/iosdc2022_pamphlet_manuscript/blob/main/images/resume_capture_04.png)
 
-**【処理実行部分のコード抜粋】**
+#### ⭐️2-1. 処理実行部分のコード抜粋
 
 ```swift
+// ----------
 // 準拠プロトコル名: GetSpecialContentBannersUseCase
 // 依存関係: SpecialContentsBannerRepository
+// ----------
 
 // MEMO: SpecialContentBanner (※Equatable準拠)
 // 👉バナー表示に必要なデータを格納しているModelクラス
@@ -90,7 +85,8 @@ func getSpecialContentBanners() -> Single<[SpecialContentBanner]> {
         .flatMap { specialContentsBanners in
             let targetSpecialContentsBanners = specialContentsBanners
                 // POINT(1): データを全件取得後にソート処理を実行する
-                // 👉①優先度の値が小さい > ②日付が古い > ③IDの値が小さい（※複数条件を設定）
+                // 👉①優先度の値が小さい > ②日付が古い > ③IDの値が小さい（複数条件を設定）
+                // ※ここはタプルを利用した書き方をしているが、少しわかりにくいかもしれない...
                 .sorted {
                     ($0.priority, $0.date, $0.id.value) < ($1.priority, $1.date, $1.id.value)
                 }
@@ -101,12 +97,14 @@ func getSpecialContentBanners() -> Single<[SpecialContentBanner]> {
 }
 ```
 
-**【ユニットテスト時に重要な部分のコード抜粋】**
+#### ⭐️2-2. ユニットテスト時に重要な部分のコード抜粋
 
 ```swift
+// ----------
 // 準拠プロトコル名: GetSpecialContentBannersUseCase
 // 依存関係: SpecialContentsBannerRepository
 // テスト対象: GetSpecialContentBannersUseCaseImpl
+// ----------
 
 // MEMO: SpecialContentBanner
 // 👉バナー表示に必要なデータを格納しているModelクラス
@@ -114,7 +112,7 @@ func getSpecialContentBanners() -> Single<[SpecialContentBanner]> {
 // MARK: - 実際のデータを想定したStubを作成
 
 // MEMO: nowDate: 現在日付 / twoDayLaterDate: 2日後日付 / threeDayLaterDate: 3日後日付
-let banner1 = SpecialContentsBanner(id: 1,　priority: 3, date: nowDate)
+let banner1 = SpecialContentsBanner(id: 1, priority: 3, date: nowDate)
 let banner2 = SpecialContentsBanner(id: 2, priority: 1, date: twoDayLaterDate)
 let banner3 = SpecialContentsBanner(id: 3, priority: 1, date: threeDayLaterDate)
 let banner4 = SpecialContentsBanner(id: 4, priority: 1, date: twoDayLaterDate)
@@ -162,15 +160,17 @@ describe("#getSpecialContentBanners") {
 }
 ``` 
 
-### 4. 実は細かな点に気を配ってみると疑問が生まれる場合
+### 3. 実は細かな点に気を配ってみると疑問が生まれる場合
 
 ![resume_capture_05.png](https://github.com/fumiyasac/iosdc2022_pamphlet_manuscript/blob/main/images/resume_capture_05.png)
 
-**【処理実行部分のコード抜粋】**
+#### ⭐️3-1. 処理実行部分のコード抜粋
 
 ```swift
+// ----------
 // 準拠プロトコル名: RelatedOrRecommendedAllShopsUseCase
 // 依存関係: ShopRepository
+// ----------
 
 // MEMO: RelatedOrRecommendedShopsDto (※Equatable準拠)
 // 👉関連店舗データ一覧またはおすすめ店舗データ一覧を格納するためのDtoクラス
@@ -226,12 +226,14 @@ private func getDtoByRecommendedShops() -> Single<RelatedOrRecommendedShopsDto> 
 }
 ```
 
-**【ユニットテスト時に重要な部分のコード抜粋】**
+#### ⭐️3-2. ユニットテスト時に重要な部分のコード抜粋
 
 ```swift
+// ----------
 // 準拠プロトコル名: RelatedOrRecommendedAllShopsUseCase
 // 依存関係: ShopRepository
 // テスト対象: RelatedOrRecommendedAllShopsUseCaseImpl
+// ----------
 
 // MEMO: RelatedOrRecommendedShopsDto (※Equatable準拠)
 // 👉関連店舗データ一覧またはおすすめ店舗データ一覧を格納するためのDtoクラス
@@ -287,19 +289,19 @@ describe("#getRelatedOrRecommendedAllShops") {
 
     // ...(※省略: 他に確認が必要なテストケースがある場合は追記する)...
 }
-``` 
+```  
 
-### 5. その他画面の中でテストがあると良さそうな部分を探り出す着想
+### 4. その他画面の中でテストがあると良さそうな部分を探り出す着想
 
-ここからは補足として、この部分については挙動ないしは仕様の担保するためのユニットテストがあると嬉しいかもしれない事例について簡単ではありますがご紹介できればと思います。
+画面要素や機能実装を進めていく前段として、重要になりそうな部分を書き出して自分なりにまとめることで、仕様ないしは挙動を明確にし、それらを担保をするためのユニットテストに繋げていく際のアプローチ例を簡単でありますがご紹介できればと思います。最初は大雑把な形でも構わないので、疑問点や間違えそうと感じた点を拙くとも自分の言葉にし、ユニットテストで予防可能な余地がある部分を少しずつ探していく様なアプローチをしていくと個人的には良さそうに思います。
 
-#### ⭐️5-1. 表示するView要素に関する処理が実行される想定かを確認する
+#### ⭐️4-1. クライアント側で実行する処理イメージや振る舞いのポイントをまとめる
 
-（※ノート図解が入ります）
+![idea_note_01.jpg](https://github.com/fumiyasac/iosdc2022_pamphlet_manuscript/blob/main/images/idea_note_01.jpg)
 
-#### ⭐️5-2. クライアント側で実行する処理が実行される想定かを確認する
+#### ⭐️4-2. 表示するView要素に関する振る舞いの想定をまとめる
 
-（※ノート図解が入ります）
+![idea_note_02.jpg](https://github.com/fumiyasac/iosdc2022_pamphlet_manuscript/blob/main/images/idea_note_02.jpg)
 
 私自身が現在も実践する習慣として、UI実装を含めたある程度ボリュームがある機能開発をする際は、着手する前段として、仕様やデザインデータ等から得た情報を自分なりに図解や説明を利用しながら実装や処理に関するイメージをノートにできる限りまとめて行く所から始める様にしています。
 
@@ -309,20 +311,8 @@ describe("#getRelatedOrRecommendedAllShops") {
 - デザイナーやPdMをはじめ、様々や役割を持つメンバーと協力しながら円滑に機能開発を進めていきたい場合
 
 等においては、とても有意義な事であると共に、事後共有としての資料やドキュメントを書く際であっても心強い武器になるのではないかと私は考えております。
-        
-### 雑談. 数学の問題から見る間違えやすい事例
 
-更なる補足になりますが数学の問題を題材にした、直感で正しいと思える解答と論理的に正しい解答が異なってしまう例についても簡単にご紹介致します。
-
-（※ノート図解が入ります）
-
-問題文を読むと何の変哲もないトランプを利用した確率の問題に見えてしまいそうですが、そう思ってしまうと不正解となってしまいます。問題文の中で注意するのは、 **「残りのカードを良く切ってから3枚抜き出したところ、3枚ともダイヤであった。」** の1文で、ポイントは1つ選んだ後に抜き出したカードの枚数とその時に選ばれたダイヤの枚数が等しい場合において、枚数が変化したならばその確率が変わる点です。（※いわゆる条件付き確率と言われるものです。）
-
-しかしながら、与えられた情報を図解等を活用し改めて整理と言語化をしてすることで、前述した様なポイントを見抜く事や間違えやすい点を発見できる可能性が高くなるのではないかと思います。
-
-機能開発の中でも、この問題と似た様な感じで、自分が思い描いていた形と実は違っていたという経験をした事は私自身もお恥ずかしながら何度もありました。落とし穴になりやすい部分がユニットテストによって仕様や機能をされていると本当に心強いですし、機能を担保するためのユニットテストを活用していく事は、とても有意義な取り組みであったと実際の業務を通して強く感じた次第です。
-
-### おわりに
+### まとめ
 
 言葉ではシンプルに表現できるが実装をしてみると想像以上に難易度が高くなる場合や、直感では正しいと思えた結果が実はそうではない場合においては、開発者の視点からではなかなか気がつきにくいケースは起こり得る可能性がありますし、時には開発に着手する前段階で **「提示されている仕様やデザインデータを適切に疑う」** 事が必要な場合においては、よりユニットテストが活きてくるのではないかと思います。
 
@@ -336,8 +326,18 @@ describe("#getRelatedOrRecommendedAllShops") {
 
 これらの部分で、もしユニットテストで機能を担保できる可能性がありそうな部分についてケアができる様にしていく姿勢や、**「できる所から少しずつ手厚くして不具合や仕様漏れを防止できる様な形にしていく」** という本当に小さな習慣や心がけが、大きな安心に繋がっていくのではないかと思います。
 
-本稿の執筆に当たりましては、これまでに私が業務委託としてアプリ開発に携わらせて頂きました現場をはじめその他様々な機会を通じて得られた知見や体験等も踏まえたものを、ピックアップした上でまとめたものになりますので、この場をお借りして感謝を意を述べさせて頂きます。
-
-業務内でもユニットテストによる仕様担保があったお陰で、業務キャッチアップの為のソースコードリーディングを通じた仕様理解がとても素早く行う事ができたり、他にも既存機能を改修する際における既存仕様の把握や実装経緯を知る必要な場面でも有意義だった経験は振り返ると多々ありました。そして、この様な体験を通して、本当に小さくかつ細かな部分に対する理解とケアの積み重ねが大きな恩恵を受けるための礎となることを改めて痛感した次第です。最後までお読み頂きまして本当にありがとうございました。
+本稿の執筆に当たりましては、これまでに私が業務委託としてアプリ開発に携わらせて頂きました現場をはじめその他様々な機会を通じて得られた知見や体験等も踏まえたものを、ピックアップした上でまとめたものになりますので、この場をお借りして感謝を意を述べさせて頂きます。業務内でもユニットテストによる仕様担保があったお陰で、業務キャッチアップの為のソースコードリーディングを通じた仕様理解がとても素早く行う事ができたり、他にも既存機能を改修する際における既存仕様の把握や実装経緯を知る必要な場面でも有意義だった経験は振り返ると多々ありました。そして、この様な体験を通して、本当に小さくかつ細かな部分に対する理解とケアの積み重ねが大きな恩恵を受けるための礎となることを改めて痛感した次第です。最後までお読み頂きまして本当にありがとうございました。
 
 ![resume_capture_06.png](https://github.com/fumiyasac/iosdc2022_pamphlet_manuscript/blob/main/images/resume_capture_06.png)
+
+### 雑談. 数学の問題から見る間違えやすい事例
+
+![mathmatics_example.jpg](https://github.com/fumiyasac/iosdc2022_pamphlet_manuscript/blob/main/images/mathmatics_example.jpg)
+
+最後になりますが数学の問題を題材にした、直感で正しいと思える解答と論理的に正しい解答が異なってしまう例についても簡単にご紹介致します。
+
+問題文を読むと何の変哲もないトランプを利用した確率の問題に見えてしまいそうですが、そう思ってしまうと不正解となってしまいます。問題文の中で注意するのは、 **「残りのカードを良く切ってから3枚抜き出したところ、3枚ともダイヤであった。」** の1文で、ポイントは1つ選んだ後に抜き出したカードの枚数とその時に選ばれたダイヤの枚数が等しい場合において、枚数が変化したならばその確率が変わる点です。（※いわゆる条件付き確率と言われるものです。）
+
+しかしながら、与えられた情報を図解等を活用し改めて整理と言語化をしてすることで、前述した様なポイントを見抜く事や間違えやすい点を発見できる可能性が高くなるのではないかと思います。
+
+機能開発の中でも、この問題と似た様な感じで、自分が思い描いていた形と実は違っていたという経験をした事は私自身もお恥ずかしながら何度もありました。落とし穴になりやすい部分がユニットテストによって仕様や機能をされていると本当に心強いですし、機能を担保するためのユニットテストを活用していく事は、とても有意義な取り組みであったと実際の業務を通して強く感じた次第です。
