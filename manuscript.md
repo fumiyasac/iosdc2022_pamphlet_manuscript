@@ -339,3 +339,74 @@ describe("#getRelatedOrRecommendedAllShops") {
 しかしながら、与えられた情報を図解等を活用し改めて整理と言語化をしてすることで、前述した様なポイントを見抜く事や間違えやすい点を発見できる可能性が高くなるのではないかと思います。
 
 機能開発の中でも、この問題と似た様な感じで、自分が思い描いていた形と実は違っていたという経験をした事は私自身もお恥ずかしながら何度もありました。落とし穴になりやすい部分がユニットテストによって仕様や機能をされていると本当に心強いですし、機能を担保するためのユニットテストを活用していく事は、とても有意義な取り組みであったと実際の業務を通して強く感じた次第です。
+
+<hr>
+
+### あとがきと原稿では書ききれなかった補足事項の紹介
+
+ここまでお読み頂きまして、本当にありがとうございました。iOSDC Japan 2022はパンフレット原稿の寄稿のみの形となってしまいましたが、わずかながらでもこの内容が何かのお役に立つ事ができれば本当に嬉しく思います。私自身は決して大きな事はできませんが、些細なアウトプットであったとしても絶やさずに継続していきたいと思いますので、引き続きよろしくお願い致します。
+
+ここからは、ページ数の関係で原稿に掲載する事ができなかった事項や、もう少し深堀りをしておきたいと感じていた事項について補足という形で触れていければと思います。
+
+#### その1. 本稿で想定したユニットテストの基本形
+
+
+__【Repository側 ＆ UseCase側でのユニットテスト例】__
+
+
+```swift
+
+```
+
+
+__【Presenter側でのユニットテスト例】__
+
+```swift
+
+```
+
+#### その2. 本稿におけるアーキテクトについての余談
+
+
+
+#### その3. AndroidアプリでのUnitTestとの見比べ
+
+
+
+#### その4. XCTestを利用したテストで自分で試した事例紹介
+
+
+
+#### 雑談. Single.zipについてのちょっとしたお話
+
+
+__【RxSwiftのコードを覗くとこんな感じになっていました】__
+
+
+```swift
+// 😳 Single.zipの限界はどうやら8つ
+public static func zip<E1, E2, E3, E4, E5, E6, E7, E8>(
+    _ source1: PrimitiveSequence<Trait, E1>, 
+    _ source2: PrimitiveSequence<Trait, E2>, 
+    _ source3: PrimitiveSequence<Trait, E3>, 
+    _ source4: PrimitiveSequence<Trait, E4>, 
+    _ source5: PrimitiveSequence<Trait, E5>, 
+    _ source6: PrimitiveSequence<Trait, E6>,
+    _ source7: PrimitiveSequence<Trait, E7>, 
+    _ source8: PrimitiveSequence<Trait, E8>, 
+    resultSelector: @escaping (E1, E2, E3, E4, E5, E6, E7, E8) throws -> Element) -> PrimitiveSequence<Trait, Element> {
+    return PrimitiveSequence(
+        raw: Observable.zip(
+            source1.asObservable(), 
+            source2.asObservable(), 
+            source3.asObservable(), 
+            source4.asObservable(), 
+            source5.asObservable(), 
+            source6.asObservable(), 
+            source7.asObservable(), 
+            source8.asObservable(), 
+            resultSelector: resultSelector
+        )
+    )
+}
+```
