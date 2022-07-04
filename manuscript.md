@@ -346,28 +346,318 @@ describe("#getRelatedOrRecommendedAllShops") {
 
 ここまでお読み頂きまして、本当にありがとうございました。iOSDC Japan 2022はパンフレット原稿の寄稿のみの形となってしまいましたが、わずかながらでもこの内容が何かのお役に立つ事ができれば本当に嬉しく思います。私自身は決して大きな事はできませんが、些細なアウトプットであったとしても絶やさずに継続していきたいと思いますので、引き続きよろしくお願い致します。
 
-ここからは、ページ数の関係で原稿に掲載する事ができなかった事項や、もう少し深堀りをしておきたいと感じていた事項について補足という形で触れていければと思います。
+ここからは、ページ数の関係で原稿に掲載する事ができなかった事項や、もう少し深堀りをしておきたいと感じていた事項について補足という形で触れていきます。
 
-#### その1. 本稿で想定したユニットテストの基本形
+#### 参考1. Presentation層でのユニットテスト例
 
 掲載している原稿内では、UseCase層（BusinessLogic層）に関するユニットテストに焦点を当てて解説をしてきましたが、ここではPresentation層のユニットテストに関しても少し触れていきたいと思います。
 
+こちらは以前にお世話になった現場の中で教わった手法になりますが、後述するテストケースの事例の様な形でPresentation層のテストケースがあることによって、想定する画面の振る舞いについても検討がつきやすくなる形することもできるので、特に1つの画面内において画面状態や表示を切り替えるためのトリガーが多くある場合等においては、とても有益ではないかと感じています。
 
-__【ViewController⇄Presenter間の処理における重要ポイントの抜粋】__
+__【ViewController ⇄ Presenter間の処理における重要ポイントの抜粋】__
 
 ```swift
+// ----------
+// Presentation層のユニットテストをできる様な形とするために、下記の様なProtocolを定義します。
+// (1) ●●●View:
+// 👉 表示画面用のViewControllerに準拠させた上で、View要素構築や表示に関する処理を実行します。
+// (2) ●●●Coodinator:
+// 👉 表示画面用のViewControllerに準拠させた上で、画面遷移に関する処理を実行します。
+// (3) ●●●Presenter:
+// 👉 実行クラス(※SearchShopPresenterImpl)に準拠させた上で、必要なUseCase層（BusinessLogic層）の処理を実施したら、View要素の構築や表示または画面遷移処理を実行するという流れを作ります。
+//
+// Presentation層のユニットテストはどの様な形になるか？ 
+// 👉 あるPresentation層に定義したメソッドを実行した際に、対象のView要素構築や表示に関する処理が実行されることを示せば良い
+// ※ (1)及び(2)はMockに置き換える必要がある部分なので、自動Mock生成の対象とします。
+// ----------
 
+// MEMO: 対象のViewControllerクラス＆PresenterImplクラスへ準拠させるプロトコル例
+
+// sourcery: AutoMockable
+protocol SearchShopView: AnyObject {
+    func setup(checkShowSpecial: Bool)
+}
+
+// sourcery: AutoMockable
+protocol SearchShopCoodinator: ScreenCoordinator {
+    func moveToSearchShopSpecial()
+    func moveToSearchShopKeyowrd()
+    func moveToSearchShopCategory()
+    func moveToSearchShopLocation()
+}
+
+protocol SearchShopPresenter: AnyObject {
+    func setup(
+         view: SearchShopView,
+         coodinator: SearchShopCoodinator
+     )
+    func viewDidLoadTrigger()
+    func coodinateSearchShopSpecialTrigger()
+    func coodinateSearchShopKeyowrdTrigger()
+    func coodinateSearchShopCategoryTrigger()
+    func coodinateSearchShopLocationTrigger()
+}
+
+// ----------
+// SearchShopViewController.swiftにおけるポイント抜粋
+// ※この事例ではRxCocoaはあまり利用しない方針を想定しています
+// ----------
+final class SearchShopViewController: UIViewController {
+
+    // MARK: - Property
+
+    private let presenter: SearchShopPresenter
+
+    // ...(※省略: 必要なプロパティがあれば定義する)...
+
+    // MARK: - Initializer
+
+    init?(coder: NSCoder, presenter: SearchShopPresenter) {
+        self.presenter = presenter
+        super.init(coder: coder)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError()
+    }
+
+    // MARK: - Override
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        // MEMO: View要素＆画面遷移関連の処理をPresenterで実行できる様にするための準備をする
+        presenter.setup(
+            view: self,
+            coodinator: self
+        )
+
+        // MEMO: viewDidLoad実行時にPresenterで実行したい処理がある場合に実行する
+        presenter.viewDidLoadTrigger()
+    }    
+
+    // MARK: - @IBAction
+
+    // ボタンタップ時にPresenter処理を実行する
+    @IBAction func searchShopSpecialButtonAction(_ sender: UIButton) {
+        // MEMO: ボタンタップ時や各種Delegate処理時においてもなるべくPresenterを介して実行する形にする
+        presenter.coodinateSearchShopSpecialTrigger()
+    }
+
+    // ...(※省略: 必要なメソッドがあれば定義する)...
+}
+
+// MARK: - SearchShopCoodinator
+
+extension SearchShopViewController: SearchShopCoodinator {
+
+    func moveToSearchShopSpecial() {
+        // TODO: 特集検索画面へ遷移する
+    }
+
+    func moveToSearchShopKeyowrd() {
+        // TODO: キーワード検索画面へ遷移する
+    }
+
+    func moveToSearchShopCategory() {
+        // TODO: カテゴリー検索画面へ遷移する
+    }
+
+    func moveToSearchShopLocation() {
+        // TODO: 位置検索画面へ遷移する
+    }
+}
+
+// MARK: - SearchShopView
+
+extension SearchShopViewController: SearchShopView {
+
+    func setup(checkShowSpecial: Bool) {
+        // TODO: 画面表示のハンドリング処理を実施する
+    }
+}
+
+// ----------
+// SearchShopPresenterImplにおけるポイント抜粋
+// ----------
+final class SearchShopPresenterImpl: SearchShopPresenter {
+
+    // MARK: - Property
+
+    private weak var view: SearchShopView?
+    private weak var coodinator: SearchShopCoodinator?
+
+    // MEMO: 初期化時に必要な責務に関する事例
+    // ① CheckShowSpecialUseCase: return Single<Bool>
+    // 👉 スペシャルコンテンツ一覧の表示可否を返す
+    // ② ImmediateSchedulerType: MainScheduler.instance
+    // 👉 この処理についてはメインスレッドで実行する
+    private let checkShowSpecialUseCase: CheckShowSpecialUseCase
+    private let mainScheduler: ImmediateSchedulerType
+
+    private let disposeBag = DisposeBag()
+
+    // MARK: - Initializer
+
+    init(
+        checkShowSpecialUseCase: CheckShowSpecialUseCase,
+        mainScheduler: ImmediateSchedulerType
+    ) {
+        self.checkShowSpecialUseCase = checkShowSpecialUseCase
+        self.mainScheduler = mainScheduler
+    }
+
+    // MARK: - Function
+
+    func setup(
+        view: SettingsView,
+        coodinator: SettingsCoodinator
+    ) {
+        self.view = view
+        self.coodinator = coodinator
+    }
+
+    func viewDidLoadTrigger() {
+        checkShowSpecialUseCase.execute()
+            .observe(
+                on: mainScheduler
+            ).subscribe(
+                .onSuccess: { [weak self] checkShowSpecial in
+                    guard let weakSelf = self else {
+                        return
+                    }
+                    // MEMO: ViewController側のView要素構築や表示処理を実行する
+                    weakSelf.view?.setup(checkShowSpecial: checkShowSpecial)
+                },
+                onFailure: { error in
+                    print(error)
+                }
+            ).disposed(by: disposeBag)
+    }
+
+    func coodinateSearchShopSpecialTrigger() {
+        // MEMO: 該当画面への画面遷移処理を実行する
+        coodinator?.moveToSearchShopSpecial()
+    }
+
+    func coodinateSearchShopKeyowrdTrigger() {
+        // MEMO: 該当画面への画面遷移処理を実行する
+        coodinator?.moveToSearchShopKeyowrd()
+    }
+
+    func coodinateSearchShopCategoryTrigger() {
+        // MEMO: 該当画面への画面遷移処理を実行する
+        coodinator?.moveToSearchShopCategory()
+    }
+
+    func coodinateSearchShopLocationTrigger() {
+        // MEMO: 該当画面への画面遷移処理を実行する
+        coodinator?.moveToSearchShopLocation()
+    }
+}
 ```
 
+__【ViewController ⇄ Presenter間の処理を検証するためのユニットテスト】__
 
-#### その2. AndroidアプリでのUnitTestとの見比べ
+```swift
+// MARK: - SearchShopPresenterImplSpec（実装クラスにおけるテストコード）での処理例
 
+final class SearchShopPresenterImplSpec: QuickSpec {
 
-#### 参考3. DIコンテナに関する補足と事例紹介
+    // MARK: - Override
 
+    override func spec() {
+        
+        // MEMO: テスト実行前の準備
+        // 👉CheckShowSpecialUseCaseMockはライブラリ「SwiftyMocky」を利用して自動生成する
+        // 👉SearchShopPresenterImplを初期化する際に必要な責務のクラスをMock化したものを適用する
+        let checkShowSpecialUseCase = CheckShowSpecialUseCaseMock()
+        let mainScheduler = CurrentThreadScheduler.instance
 
-#### その4. XCTestを利用したテストで自分で試した事例紹介
+        // MEMO: ユニットテストと対応するテストケースの作成例
+        describe("SearchShopPresenterImpl") {
 
+            // MARK: - viewDidLoadTriggerを実行した際のテスト
+
+            describe("#viewDidLoadTrigger") {
+                // MEMO: SearchShopPresenterImplを初期化する際に必要なSearchShopView・SearchShopCoodinatorについてもクラスをMock化したものを適用する
+                let view = SearchShopViewMock()
+                let coodinator = SearchShopCoodinatorMock()
+                let target = SearchShopPresenterImpl(
+                    checkShowSpecialUseCase: checkShowSpecialUseCase,
+                    mainScheduler: mainScheduler
+                )
+                target.setup(
+                    view: view,
+                    coodinator: coodinator
+                )
+                let checkShowSpecial = true 
+
+                // POINT(1): Mock化したUseCaseクラスの返り値を設定する
+                // 👉trueまたはfalserを返すことを想定 (※画面表示処理等に合わせて確認したいテストケースに応じて設定するのがポイント)
+                beforeEach {
+                    checkShowSpecialUseCase.given(
+                        .execute(
+                            willReturn: Single.just(checkShowSpecial)
+                        )
+                    )
+                }
+
+                // POINT(2): Presenter側の処理に対応するView側の処理が実行されていることを確認する
+                // 👉.verifyメソッドを利用してSearchShopViewに定義したsetup(checkShowSpecial: Bool)が実行する想定
+                it("画面描画処理のsetup(checkShowSpecial: Bool)が1回実行される") {
+                    target.viewDidLoadTrigger()
+                    view.verify(
+                        .setup(checkShowSpecial: .value(checkShowSpecial)),
+                        count: .once
+                    )
+                }
+            }
+
+            // MARK: - coodinateSearchShopSpecialTriggerを実行した際のテスト
+
+            describe("#coodinateSearchShopSpecialTrigger") {
+                // MEMO: viewDidLoadTrigger実行時のテストケースを同様にテスト実行前の準備をする
+                let view = SearchShopViewMock()
+                let coodinator = SearchShopCoodinatorMock()
+                let target = SearchShopPresenterImpl(
+                    checkShowSpecialUseCase: checkShowSpecialUseCase,
+                    mainScheduler: mainScheduler
+                )
+                target.setup(
+                    view: view,
+                    coodinator: coodinator
+                )
+
+                // POINT(3): Presenter側の処理に対応するCoodinator側の処理が実行されていることを確認する
+                // 👉.verifyメソッドを利用してSearchShopCoodinatorに定義したmoveToSearchShopSpecial()が実行する想定
+                it("画面描画処理のmoveToSearchShopSpecial()が1回実行される") {
+                    target.coodinateSearchShopSpecialTrigger()
+                    coodinator.verify(
+                        .moveToSearchShopSpecial(),
+                        count: .once
+                    )
+                }
+            }
+        }
+    }
+}
+```
+
+#### 参考2. その他参考資料
+
+__【AndroidアプリでにおけるUnitTestとの比較】__
+
+- [Testing Android apps based on Dagger and RxJava Droidcon UK](https://www.slideshare.net/fabio_collini/testing-android-apps-based-on-dagger-and-rxjava-droidcon-uk)
+- [Keddit — Part 9: Unit Test with Kotlin (Mockito, RxJava & Spek)](https://medium.com/android-news/keddit-part-9-unit-test-with-kotlin-mockito-spek-76709812e3b6)
+- [Improve your tests with Kotlin in Android — (Pt.1)](https://proandroiddev.com/improve-your-tests-with-kotlin-in-android-pt-1-6d0b04017e80)
+- [Improve your tests with Kotlin in Android — (Pt.2)](https://proandroiddev.com/improve-your-tests-with-kotlin-in-android-pt-2-f3594e5e7bfd)
+- [AndroidのテストをSpek+Mockitoで書こう](https://qiita.com/k_keisuke/items/815ced486e8cdff8670d)
+
+__【DIコンテナに関する事例紹介】__
+
+- [自前でDIコンテナを作ってみる試みとRxSwiftを利用した構成への適用を試してみる](https://qiita.com/fumiyasac@github/items/8d6b77c3547b8b7839ad)
+- [【実装MEMO】PropertyWrappersの機能を利用したDependency Injectionのコードに触れた際の備忘録](https://fumiyasakai.medium.com/%E5%AE%9F%E8%A3%85memo-propertywrappers%E3%81%AE%E6%A9%9F%E8%83%BD%E3%82%92%E5%88%A9%E7%94%A8%E3%81%97%E3%81%9Fdependency-injection%E3%81%AE%E3%82%B3%E3%83%BC%E3%83%89%E3%81%AB%E8%A7%A6%E3%82%8C%E3%81%9F%E9%9A%9B%E3%81%AE%E5%82%99%E5%BF%98%E9%8C%B2-b269bc914b7a)
 
 #### 雑談. Single.zipについてのちょっとしたお話
 
@@ -387,7 +677,6 @@ RxSwiftを利用した実装に対して最初は強く感じていた抵抗感�
 __【RxSwiftのコードを覗くとこんな感じになっていました】__
 
 ```swift
-// 😳 Single.zipの限界はどうやら8つ
 public static func zip<E1, E2, E3, E4, E5, E6, E7, E8>(
     _ source1: PrimitiveSequence<Trait, E1>, 
     _ source2: PrimitiveSequence<Trait, E2>, 
