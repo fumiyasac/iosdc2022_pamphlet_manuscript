@@ -268,7 +268,7 @@ describe("#getRelatedOrRecommendedAllShops") {
             // POINT(1): Mock化したRepositoryクラスの返り値を設定する
             // 👉関連店舗一覧: Single.error / おすすめ店舗一覧: Single.just(recommendShops)
             shopRepository.given(
-                .findAllRelatedById(.value(shopId), willReturn: SSingle.error(CommonError.notExistObject))
+                .findAllRelatedById(.value(shopId), willReturn: Single.error(CommonError.notExistObject))
             )
             shopRepository.given(
                 .findRecommended(willReturn: Single.just(recommendShops))
